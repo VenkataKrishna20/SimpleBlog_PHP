@@ -18,7 +18,6 @@ body
 
 	margin: 20px;
 }
-
 .cke_editable
 {
 	font-size: 13px;
@@ -59,8 +58,7 @@ a
 
 ol,ul,dl
 {
-	/* IE7: reset rtl list margin. (#7334) */
-	*margin-right: 0px;
+	margin-right: 0;
 	/* Preserved spaces for list items with text direction different than the list. (#6249,#8049)*/
 	padding: 0 40px;
 }
