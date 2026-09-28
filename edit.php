@@ -2,25 +2,46 @@
 
 require_once "connection.php";
 
-$blog_name = $blog_content = $blog_url = "";
+$blog_name = $blog_content = "";
+$id = "";
+
+if (isset($_GET["id"]) && !empty(trim($_GET["id"]))) {
+    $id = trim($_GET["id"]);
+    $sql = "SELECT * FROM blogs WHERE id = ?";
+
+    if ($stmt = mysqli_prepare($link, $sql)) {
+        mysqli_stmt_bind_param($stmt, "i", $id);
+
+        if (mysqli_stmt_execute($stmt)) {
+            $result = mysqli_stmt_get_result($stmt);
+
+            if (mysqli_num_rows($result) == 1) {
+                $row = mysqli_fetch_array($result, MYSQLI_ASSOC);
+                $blog_name = $row["blog_name"];
+                $blog_content = $row["blog_content"];
+            } else {
+                exit;
+            }
+        }
+
+        mysqli_stmt_close($stmt);
+    }
+}
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $id = trim($_POST["id"]);
     $blog_name = $_POST["blog_name"];
     $blog_content = $_POST["blog_content"];
 
-    $sql = "INSERT INTO blogs (blog_name, blog_content, blog_url) VALUES (?, ?, ?)";
-
-    $param_blog_name = $blog_name;
-    $param_blog_content = $blog_content;
-    $param_blog_url = str_replace(" ", "-", $blog_name);
+    $sql = "UPDATE blogs SET blog_name = ?, blog_content = ? WHERE id = ?";
 
     if ($stmt = mysqli_prepare($link, $sql)) {
         mysqli_stmt_bind_param(
             $stmt,
-            "sss",
-            $param_blog_name,
-            $param_blog_content,
-            $param_blog_url
+            "ssi",
+            $blog_name,
+            $blog_content,
+            $id
         );
 
         if (mysqli_stmt_execute($stmt)) {
@@ -45,7 +66,7 @@ mysqli_close($link);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Create Blog</title>
+    <title>Edit Blog</title>
 
     <link rel="stylesheet" href="assets/vendors/bootstrap/css/bootstrap.css">
     <link rel="stylesheet" href="assets/vendors/bootstrap-icons/font/bootstrap-icons.css">
@@ -190,7 +211,7 @@ mysqli_close($link);
             color: #172033;
         }
 
-        .btn-create {
+        .btn-update {
             background-color: #1769ff;
             border-color: #1769ff;
             color: #ffffff;
@@ -198,7 +219,7 @@ mysqli_close($link);
             border-radius: 7px;
         }
 
-        .btn-create:hover {
+        .btn-update:hover {
             background-color: #0f5de0;
             border-color: #0f5de0;
             color: #ffffff;
@@ -219,9 +240,9 @@ mysqli_close($link);
         </a>
 
         <div class="page-heading">
-            <h2 class="page-title">Create New Blog</h2>
+            <h2 class="page-title">Edit Blog</h2>
             <p class="page-subtitle">
-                Write and publish a new blog post.
+                Update the title and content of your blog post.
             </p>
         </div>
 
@@ -236,7 +257,7 @@ mysqli_close($link);
 
                     <div>
                         <h5>Blog Details</h5>
-                        <p>Add the title and content for your new blog.</p>
+                        <p>Make changes to your existing blog post.</p>
                     </div>
 
                 </div>
@@ -245,8 +266,13 @@ mysqli_close($link);
             <div class="form-body">
 
                 <form
-                    action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>"
+                    action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]) . '?id=' . $id; ?>"
                     method="POST">
+
+                    <input
+                        type="hidden"
+                        name="id"
+                        value="<?php echo htmlspecialchars($id); ?>">
 
                     <div class="name-section">
 
@@ -289,8 +315,8 @@ mysqli_close($link);
 
                         <input
                             type="submit"
-                            class="btn btn-create"
-                            value="Create Blog">
+                            class="btn btn-update"
+                            value="Update Blog">
 
                     </div>
 
